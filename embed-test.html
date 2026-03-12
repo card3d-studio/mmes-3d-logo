@@ -2,20 +2,28 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MMES Logo Embed Test Harness</title>
     <style>
       :root {
-        --page-max: 1400px;
-        --card-radius: 18px;
+        --page-max: 1440px;
+        --radius: 18px;
         --border: 1px solid rgba(15, 23, 42, 0.12);
-        --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
         --text: #122033;
-        --muted: #526174;
+        --muted: #5a6778;
+        --bg: #eef4fb;
         --surface: #ffffff;
         --surface-alt: #f7f9fc;
-        --dark: #10233a;
-        --accent: #1e64c8;
+        --accent: #1f63c6;
+        --ok: #dff5e8;
+        --ok-text: #14532d;
+        --warn: #fff3cd;
+        --warn-text: #7c5a00;
+        --bad: #fde2e2;
+        --bad-text: #7f1d1d;
+        --pending: #edf2f7;
+        --pending-text: #334155;
       }
 
       * {
@@ -26,13 +34,20 @@
       body {
         margin: 0;
         padding: 0;
-        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
         color: var(--text);
-        background: linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+        background: linear-gradient(180deg, #f7fbff 0%, var(--bg) 100%);
       }
 
       body {
-        padding: 32px 20px 72px;
+        padding: 28px 18px 56px;
       }
 
       .page {
@@ -41,12 +56,12 @@
       }
 
       .hero {
-        background: rgba(255, 255, 255, 0.92);
+        background: rgba(255, 255, 255, 0.94);
         border: var(--border);
-        border-radius: 26px;
+        border-radius: 24px;
         box-shadow: var(--shadow);
-        padding: 28px;
-        margin-bottom: 28px;
+        padding: 26px;
+        margin-bottom: 24px;
       }
 
       h1,
@@ -61,18 +76,28 @@
         margin-bottom: 10px;
       }
 
+      h2 {
+        font-size: 1.08rem;
+        margin-bottom: 6px;
+      }
+
+      h3 {
+        font-size: 0.98rem;
+        margin-bottom: 8px;
+      }
+
       .lede {
-        font-size: 1.05rem;
+        font-size: 1.03rem;
         color: var(--muted);
-        max-width: 900px;
         line-height: 1.55;
+        max-width: 950px;
       }
 
       .toolbar {
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
-        margin-top: 20px;
+        margin-top: 18px;
       }
 
       .toolbar a,
@@ -96,7 +121,7 @@
 
       .note-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap: 14px;
         margin-top: 22px;
       }
@@ -105,7 +130,7 @@
         background: var(--surface-alt);
         border: var(--border);
         border-radius: 16px;
-        padding: 16px;
+        padding: 15px;
       }
 
       .note strong {
@@ -122,19 +147,14 @@
       .scenario-card {
         background: var(--surface);
         border: var(--border);
-        border-radius: var(--card-radius);
+        border-radius: var(--radius);
         box-shadow: var(--shadow);
         overflow: hidden;
       }
 
       .scenario-header {
-        padding: 16px 18px 10px;
+        padding: 16px 18px 12px;
         border-bottom: var(--border);
-      }
-
-      .scenario-header h2 {
-        font-size: 1.06rem;
-        margin-bottom: 6px;
       }
 
       .scenario-header p {
@@ -149,17 +169,76 @@
       }
 
       .frame {
+        display: block;
         width: 100%;
         border: 0;
-        display: block;
         background: transparent;
+      }
+
+      .status-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 14px;
+        flex-wrap: wrap;
+      }
+
+      .status-select {
+        appearance: none;
+        border: var(--border);
+        border-radius: 999px;
+        background: white;
+        color: var(--text);
+        padding: 9px 12px;
+        font: inherit;
+      }
+
+      .status-badge {
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 0.92rem;
+        font-weight: 600;
+        border: var(--border);
+      }
+
+      .status-pass {
+        background: var(--ok);
+        color: var(--ok-text);
+      }
+
+      .status-needs {
+        background: var(--warn);
+        color: var(--warn-text);
+      }
+
+      .status-fail {
+        background: var(--bad);
+        color: var(--bad-text);
+      }
+
+      .status-pending {
+        background: var(--pending);
+        color: var(--pending-text);
+      }
+
+      .scenario-notes {
+        width: 100%;
+        min-height: 72px;
+        margin-top: 12px;
+        border: var(--border);
+        border-radius: 12px;
+        padding: 10px 12px;
+        font: inherit;
+        color: var(--text);
+        resize: vertical;
       }
 
       .header-shell {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 16px;
+        gap: 14px;
         background: white;
         border: var(--border);
         border-radius: 14px;
@@ -168,7 +247,7 @@
       }
 
       .header-logo {
-        width: 148px;
+        width: 150px;
         height: 56px;
         flex: 0 0 auto;
       }
@@ -177,17 +256,45 @@
         display: flex;
         gap: 12px;
         flex-wrap: wrap;
+        font-size: 0.94rem;
         color: var(--muted);
-        font-size: 0.95rem;
+      }
+
+      .tight-header-shell {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        background: white;
+        border: var(--border);
+        border-radius: 12px;
+        height: 58px;
+        padding: 6px 10px;
+        overflow: hidden;
+      }
+
+      .tight-header-logo {
+        width: 110px;
+        height: 40px;
+        flex: 0 0 auto;
+      }
+
+      .tight-links {
+        display: flex;
+        gap: 8px;
+        flex-wrap: nowrap;
+        white-space: nowrap;
+        font-size: 0.82rem;
+        color: var(--muted);
       }
 
       .hero-shell {
         min-height: 360px;
         display: grid;
         place-items: center;
-        border-radius: 18px;
         padding: 24px;
-        background: linear-gradient(135deg, #f8fbff 0%, #e7f0fb 50%, #d5e7ff 100%);
+        border-radius: 18px;
+        background: linear-gradient(135deg, #f8fbff 0%, #e8f1fb 55%, #d5e6ff 100%);
       }
 
       .hero-logo {
@@ -199,12 +306,12 @@
         width: 210px;
         min-height: 160px;
         margin: 0 auto;
-        border: var(--border);
-        border-radius: 18px;
-        padding: 12px;
         display: grid;
         place-items: center;
+        border: var(--border);
+        border-radius: 18px;
         background: white;
+        padding: 12px;
       }
 
       .small-card-logo {
@@ -214,11 +321,11 @@
 
       .dark-shell {
         min-height: 240px;
-        border-radius: 18px;
-        background: radial-gradient(circle at top, #24456d 0%, #10233a 45%, #08121e 100%);
         display: grid;
         place-items: center;
         padding: 20px;
+        border-radius: 18px;
+        background: radial-gradient(circle at top, #28476f 0%, #10233a 45%, #08111d 100%);
       }
 
       .dark-logo {
@@ -228,11 +335,11 @@
 
       .light-shell {
         min-height: 240px;
-        border-radius: 18px;
-        background: #ffffff;
         display: grid;
         place-items: center;
         padding: 20px;
+        border-radius: 18px;
+        background: #ffffff;
         border: 1px dashed rgba(15, 23, 42, 0.16);
       }
 
@@ -243,10 +350,10 @@
 
       .image-shell {
         min-height: 250px;
-        border-radius: 18px;
         display: grid;
         place-items: center;
         padding: 20px;
+        border-radius: 18px;
         background-image:
           linear-gradient(rgba(10, 24, 39, 0.18), rgba(10, 24, 39, 0.18)),
           url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1' y1='0' y2='1'%3E%3Cstop offset='0%' stop-color='%23c6def7'/%3E%3Cstop offset='50%' stop-color='%23f6ecd8'/%3E%3Cstop offset='100%' stop-color='%23b9d8c0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23g)'/%3E%3Cg fill='none' stroke='rgba(255,255,255,0.45)' stroke-width='3'%3E%3Cpath d='M0 150 C300 80 500 260 800 150 S1300 10 1600 150'/%3E%3Cpath d='M0 360 C250 260 550 470 800 360 S1300 220 1600 360'/%3E%3Cpath d='M0 610 C250 500 550 720 800 610 S1300 480 1600 610'/%3E%3C/g%3E%3C/svg%3E");
@@ -324,7 +431,7 @@
         flex-wrap: wrap;
       }
 
-      .home-link {
+      .linked-brand {
         display: inline-flex;
         align-items: center;
         gap: 14px;
@@ -332,22 +439,24 @@
         color: inherit;
         border-radius: 14px;
         padding: 10px 12px;
-        transition: box-shadow 0.2s ease, transform 0.2s ease;
+        transition:
+          box-shadow 0.2s ease,
+          transform 0.2s ease;
       }
 
-      .home-link:hover,
-      .home-link:focus-visible {
-        box-shadow: 0 0 0 3px rgba(30, 100, 200, 0.18);
+      .linked-brand:hover,
+      .linked-brand:focus-visible {
+        box-shadow: 0 0 0 3px rgba(31, 99, 198, 0.18);
         outline: none;
       }
 
-      .home-link-logo {
+      .linked-brand-logo {
         width: 110px;
         height: 54px;
-        pointer-events: none;
+        flex: 0 0 auto;
       }
 
-      .linked-label {
+      .linked-brand-text {
         font-weight: 600;
       }
 
@@ -414,7 +523,8 @@
           padding-right: 14px;
         }
 
-        .header-shell {
+        .header-shell,
+        .tight-header-shell {
           align-items: flex-start;
         }
       }
@@ -425,29 +535,36 @@
       <section class="hero">
         <h1>Morehead Montessori Logo Embed Test Harness</h1>
         <p class="lede">
-          Use this page to test the live logo under realistic container sizes,
-          backgrounds, and layout constraints before handing it to the school.
-          Each scenario embeds the live GitHub Pages demo so you can spot sizing,
-          transparency, accessibility, and fallback issues quickly.
+          This page tests the live hosted logo in realistic embed scenarios before handoff to
+          the school. It is useful for sizing, transparency, layout, accessibility, and fallback
+          checks, but it does not prove that a future native component embed will behave
+          identically inside every CMS.
         </p>
 
         <div class="toolbar">
-          <a href="https://card3d-studio.github.io/mmes-3d-logo/" target="_blank" rel="noreferrer">Open live logo demo</a>
+          <a
+            href="https://card3d-studio.github.io/mmes-3d-logo/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open live logo demo
+          </a>
           <button class="secondary" type="button" id="reloadFrames">Reload all test frames</button>
         </div>
 
         <div class="note-grid">
           <div class="note">
             <strong>What this tests</strong>
-            Transparency, sizing, container behavior, mobile fit, dark/light backgrounds, and basic embed resilience.
+            Live hosted logo behavior across layout, background, and size constraints.
           </div>
           <div class="note">
-            <strong>What this does not fully test</strong>
-            Direct DOM-level integration issues inside a school CMS. For that, later we should also make a true embeddable build.
+            <strong>What this does not prove</strong>
+            Perfect parity with a future native script/component embed inside every school website
+            stack.
           </div>
           <div class="note">
-            <strong>Best workflow</strong>
-            Keep this harness in the repo, then add quick notes under each scenario as problems are discovered and fixed.
+            <strong>Best use</strong>
+            Mark each scenario as pass, needs adjustment, or fail while you review the page.
           </div>
         </div>
       </section>
@@ -456,11 +573,17 @@
         <article class="scenario-card">
           <div class="scenario-header">
             <h2>Header / Navigation</h2>
-            <p>Tests a narrow header slot with nearby navigation items.</p>
+            <p>Tests a typical site header slot with nearby navigation items.</p>
           </div>
           <div class="scenario-body">
             <div class="header-shell">
-              <iframe class="frame header-logo logo-frame" title="Header logo test" src="https://card3d-studio.github.io/mmes-3d-logo/"></iframe>
+              <iframe
+                class="frame header-logo logo-frame"
+                title="Header logo test"
+                src="https://card3d-studio.github.io/mmes-3d-logo/"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+              ></iframe>
               <div class="nav-links">
                 <span>About</span>
                 <span>Admissions</span>
@@ -468,30 +591,117 @@
                 <span>Contact</span>
               </div>
             </div>
+            <div class="status-row">
+              <select class="status-select" aria-label="Header navigation status">
+                <option value="pending">Pending review</option>
+                <option value="pass">Pass</option>
+                <option value="needs">Needs adjustment</option>
+                <option value="fail">Fail</option>
+              </select>
+              <span class="status-badge status-pending">Pending review</span>
+            </div>
+            <textarea
+              class="scenario-notes"
+              placeholder="Notes: clipping, transparency, spacing, focus behavior, etc."
+            ></textarea>
+          </div>
+        </article>
+
+        <article class="scenario-card">
+          <div class="scenario-header">
+            <h2>Cramped Header</h2>
+            <p>Tests a tight header height, since real school headers are often cramped.</p>
+          </div>
+          <div class="scenario-body">
+            <div class="tight-header-shell">
+              <iframe
+                class="frame tight-header-logo logo-frame"
+                title="Cramped header logo test"
+                src="https://card3d-studio.github.io/mmes-3d-logo/"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+              ></iframe>
+              <div class="tight-links">
+                <span>About</span>
+                <span>Calendar</span>
+                <span>Apply</span>
+              </div>
+            </div>
+            <div class="status-row">
+              <select class="status-select" aria-label="Cramped header status">
+                <option value="pending">Pending review</option>
+                <option value="pass">Pass</option>
+                <option value="needs">Needs adjustment</option>
+                <option value="fail">Fail</option>
+              </select>
+              <span class="status-badge status-pending">Pending review</span>
+            </div>
+            <textarea
+              class="scenario-notes"
+              placeholder="Notes: header height, readability, cropping, visual balance."
+            ></textarea>
           </div>
         </article>
 
         <article class="scenario-card">
           <div class="scenario-header">
             <h2>Hero Section</h2>
-            <p>Tests a larger promotional area where the logo is a focal element.</p>
+            <p>Tests a larger promotional placement where the logo is a focal element.</p>
           </div>
           <div class="scenario-body">
             <div class="hero-shell">
-              <iframe class="frame hero-logo logo-frame" title="Hero logo test" src="https://card3d-studio.github.io/mmes-3d-logo/"></iframe>
+              <iframe
+                class="frame hero-logo logo-frame"
+                title="Hero logo test"
+                src="https://card3d-studio.github.io/mmes-3d-logo/"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+              ></iframe>
             </div>
+            <div class="status-row">
+              <select class="status-select" aria-label="Hero section status">
+                <option value="pending">Pending review</option>
+                <option value="pass">Pass</option>
+                <option value="needs">Needs adjustment</option>
+                <option value="fail">Fail</option>
+              </select>
+              <span class="status-badge status-pending">Pending review</span>
+            </div>
+            <textarea
+              class="scenario-notes"
+              placeholder="Notes: size, presence, edge quality, background harmony."
+            ></textarea>
           </div>
         </article>
 
         <article class="scenario-card">
           <div class="scenario-header">
             <h2>Small Container</h2>
-            <p>Tests a constrained card or badge-sized embed.</p>
+            <p>Tests a constrained card or badge-style placement.</p>
           </div>
           <div class="scenario-body">
             <div class="small-card-shell">
-              <iframe class="frame small-card-logo logo-frame" title="Small container logo test" src="https://card3d-studio.github.io/mmes-3d-logo/"></iframe>
+              <iframe
+                class="frame small-card-logo logo-frame"
+                title="Small container logo test"
+                src="https://card3d-studio.github.io/mmes-3d-logo/"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+              ></iframe>
             </div>
+            <div class="status-row">
+              <select class="status-select" aria-label="Small container status">
+                <option value="pending">Pending review</option>
+                <option value="pass">Pass</option>
+                <option value="needs">Needs adjustment</option>
+                <option value="fail">Fail</option>
+              </select>
+              <span class="status-badge status-pending">Pending review</span>
+            </div>
+            <textarea
+              class="scenario-notes"
+              placeholder="Notes: legibility at small sizes, cropping, visual clutter."
+            ></textarea>
           </div>
         </article>
 
@@ -502,20 +712,58 @@
           </div>
           <div class="scenario-body">
             <div class="dark-shell">
-              <iframe class="frame dark-logo logo-frame" title="Dark background logo test" src="https://card3d-studio.github.io/mmes-3d-logo/"></iframe>
+              <iframe
+                class="frame dark-logo logo-frame"
+                title="Dark background logo test"
+                src="https://card3d-studio.github.io/mmes-3d-logo/"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+              ></iframe>
             </div>
+            <div class="status-row">
+              <select class="status-select" aria-label="Dark background status">
+                <option value="pending">Pending review</option>
+                <option value="pass">Pass</option>
+                <option value="needs">Needs adjustment</option>
+                <option value="fail">Fail</option>
+              </select>
+              <span class="status-badge status-pending">Pending review</span>
+            </div>
+            <textarea
+              class="scenario-notes"
+              placeholder="Notes: contrast, haloing, transparency quality, visual separation."
+            ></textarea>
           </div>
         </article>
 
         <article class="scenario-card">
           <div class="scenario-header">
             <h2>Light Background</h2>
-            <p>Confirms the logo stays readable on white and off-white surfaces.</p>
+            <p>Confirms the logo stays readable on white and near-white surfaces.</p>
           </div>
           <div class="scenario-body">
             <div class="light-shell">
-              <iframe class="frame light-logo logo-frame" title="Light background logo test" src="https://card3d-studio.github.io/mmes-3d-logo/"></iframe>
+              <iframe
+                class="frame light-logo logo-frame"
+                title="Light background logo test"
+                src="https://card3d-studio.github.io/mmes-3d-logo/"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+              ></iframe>
             </div>
+            <div class="status-row">
+              <select class="status-select" aria-label="Light background status">
+                <option value="pending">Pending review</option>
+                <option value="pass">Pass</option>
+                <option value="needs">Needs adjustment</option>
+                <option value="fail">Fail</option>
+              </select>
+              <span class="status-badge status-pending">Pending review</span>
+            </div>
+            <textarea
+              class="scenario-notes"
+              placeholder="Notes: visibility on white, blending, edge definition."
+            ></textarea>
           </div>
         </article>
 
@@ -526,8 +774,27 @@
           </div>
           <div class="scenario-body">
             <div class="image-shell">
-              <iframe class="frame image-logo logo-frame" title="Image background logo test" src="https://card3d-studio.github.io/mmes-3d-logo/"></iframe>
+              <iframe
+                class="frame image-logo logo-frame"
+                title="Image background logo test"
+                src="https://card3d-studio.github.io/mmes-3d-logo/"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+              ></iframe>
             </div>
+            <div class="status-row">
+              <select class="status-select" aria-label="Image background status">
+                <option value="pending">Pending review</option>
+                <option value="pass">Pass</option>
+                <option value="needs">Needs adjustment</option>
+                <option value="fail">Fail</option>
+              </select>
+              <span class="status-badge status-pending">Pending review</span>
+            </div>
+            <textarea
+              class="scenario-notes"
+              placeholder="Notes: transparency realism, background interference, clarity."
+            ></textarea>
           </div>
         </article>
 
@@ -540,116 +807,254 @@
             <div class="mobile-shell">
               <div class="mobile-topbar">Mobile preview</div>
               <div class="mobile-content">
-                <iframe class="frame mobile-logo logo-frame" title="Mobile logo test" src="https://card3d-studio.github.io/mmes-3d-logo/"></iframe>
-                <p style="margin: 12px 0 0; color: var(--muted);">Check whether the logo still reads clearly without crowding the container.</p>
+                <iframe
+                  class="frame mobile-logo logo-frame"
+                  title="Mobile logo test"
+                  src="https://card3d-studio.github.io/mmes-3d-logo/"
+                  loading="lazy"
+                  referrerpolicy="no-referrer"
+                ></iframe>
+                <p style="margin: 12px 0 0; color: var(--muted);">
+                  Check whether the logo still reads clearly without crowding the container.
+                </p>
               </div>
             </div>
+            <div class="status-row">
+              <select class="status-select" aria-label="Mobile layout status">
+                <option value="pending">Pending review</option>
+                <option value="pass">Pass</option>
+                <option value="needs">Needs adjustment</option>
+                <option value="fail">Fail</option>
+              </select>
+              <span class="status-badge status-pending">Pending review</span>
+            </div>
+            <textarea
+              class="scenario-notes"
+              placeholder="Notes: narrow width behavior, crowding, readability, touch feel."
+            ></textarea>
           </div>
         </article>
 
         <article class="scenario-card">
           <div class="scenario-header">
             <h2>Flex Layout</h2>
-            <p>Tests behavior inside a content row with neighboring copy.</p>
+            <p>Tests behavior inside a content row with neighboring text.</p>
           </div>
           <div class="scenario-body">
             <div class="flex-shell">
-              <iframe class="frame flex-logo logo-frame" title="Flex layout logo test" src="https://card3d-studio.github.io/mmes-3d-logo/"></iframe>
+              <iframe
+                class="frame flex-logo logo-frame"
+                title="Flex layout logo test"
+                src="https://card3d-studio.github.io/mmes-3d-logo/"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+              ></iframe>
               <div class="flex-copy">
                 <h3>Example school content block</h3>
                 <p style="margin-bottom: 0; color: var(--muted); line-height: 1.55;">
-                  This checks whether the logo feels balanced when placed beside text, buttons, or navigation elements.
+                  This checks whether the logo feels balanced when placed beside text, buttons,
+                  or navigation elements.
                 </p>
               </div>
             </div>
+            <div class="status-row">
+              <select class="status-select" aria-label="Flex layout status">
+                <option value="pending">Pending review</option>
+                <option value="pass">Pass</option>
+                <option value="needs">Needs adjustment</option>
+                <option value="fail">Fail</option>
+              </select>
+              <span class="status-badge status-pending">Pending review</span>
+            </div>
+            <textarea
+              class="scenario-notes"
+              placeholder="Notes: alignment, vertical rhythm, proportion beside text."
+            ></textarea>
           </div>
         </article>
 
         <article class="scenario-card">
           <div class="scenario-header">
-            <h2>Link Behavior</h2>
-            <p>Simulates the logo being part of a homepage link or brand lockup.</p>
+            <h2>Linked Brand Treatment</h2>
+            <p>
+              Simulates how the logo might look next to brand text inside a linked homepage
+              treatment, without putting the iframe itself inside the anchor.
+            </p>
           </div>
           <div class="scenario-body">
             <div class="link-shell">
               <div class="link-row">
-                <a class="home-link" href="#" aria-label="Homepage link test">
-                  <iframe class="frame home-link-logo logo-frame" title="Linked logo test" src="https://card3d-studio.github.io/mmes-3d-logo/"></iframe>
-                  <span class="linked-label">Morehead Montessori</span>
+                <a class="linked-brand" href="#" aria-label="Homepage link treatment preview">
+                  <span class="linked-brand-logo">
+                    <iframe
+                      class="frame linked-brand-logo logo-frame"
+                      title="Linked brand visual test"
+                      src="https://card3d-studio.github.io/mmes-3d-logo/"
+                      loading="lazy"
+                      referrerpolicy="no-referrer"
+                      tabindex="-1"
+                    ></iframe>
+                  </span>
+                  <span class="linked-brand-text">Morehead Montessori</span>
                 </a>
-                <span style="color: var(--muted);">Check focus ring, spacing, and whether the linked treatment feels natural.</span>
+                <span style="color: var(--muted);">
+                  Review spacing, focus treatment, and overall brand fit.
+                </span>
               </div>
             </div>
+            <div class="status-row">
+              <select class="status-select" aria-label="Linked brand treatment status">
+                <option value="pending">Pending review</option>
+                <option value="pass">Pass</option>
+                <option value="needs">Needs adjustment</option>
+                <option value="fail">Fail</option>
+              </select>
+              <span class="status-badge status-pending">Pending review</span>
+            </div>
+            <textarea
+              class="scenario-notes"
+              placeholder="Notes: brand lockup feel, spacing, focus ring, realism."
+            ></textarea>
           </div>
         </article>
 
         <article class="scenario-card">
           <div class="scenario-header">
             <h2>Reduced Motion</h2>
-            <p>Use this section while your OS/browser preference is set to reduce motion.</p>
+            <p>Use this section while your OS or browser preference is set to reduce motion.</p>
           </div>
           <div class="scenario-body">
             <div class="reduced-shell stack">
               <div class="compare-row">
                 <div class="compare-panel">
-                  <h3>Standard view</h3>
-                  <iframe class="frame compare-logo logo-frame" title="Standard motion test" src="https://card3d-studio.github.io/mmes-3d-logo/"></iframe>
+                  <h3>Live hosted version</h3>
+                  <iframe
+                    class="frame compare-logo logo-frame"
+                    title="Reduced motion comparison test"
+                    src="https://card3d-studio.github.io/mmes-3d-logo/"
+                    loading="lazy"
+                    referrerpolicy="no-referrer"
+                  ></iframe>
                 </div>
                 <div class="compare-panel">
-                  <h3>Reduced-motion check</h3>
-                  <p style="color: var(--muted); line-height: 1.5;">
-                    Turn on <code>Reduce motion</code> in your system accessibility settings, then reload this page. Confirm the fallback behavior matches your intended design.
-                  </p>
+                  <h3>Checklist</h3>
+                  <ul class="checklist">
+                    <li>Turn on <code>Reduce motion</code> in system settings.</li>
+                    <li>Reload this page.</li>
+                    <li>Confirm the fallback or reduced-motion behavior is intentional.</li>
+                    <li>Check whether the explanatory text still matches what users see.</li>
+                  </ul>
                 </div>
               </div>
-              <ul class="checklist">
-                <li>Does the fallback image appear consistently?</li>
-                <li>Is the explanatory text still appropriate?</li>
-                <li>Does the logo remain visually acceptable when interactivity is suppressed?</li>
-              </ul>
             </div>
+            <div class="status-row">
+              <select class="status-select" aria-label="Reduced motion status">
+                <option value="pending">Pending review</option>
+                <option value="pass">Pass</option>
+                <option value="needs">Needs adjustment</option>
+                <option value="fail">Fail</option>
+              </select>
+              <span class="status-badge status-pending">Pending review</span>
+            </div>
+            <textarea
+              class="scenario-notes"
+              placeholder="Notes: motion suppression, fallback consistency, accessibility language."
+            ></textarea>
           </div>
         </article>
 
         <article class="scenario-card">
           <div class="scenario-header">
             <h2>No WebGL / JS Failure</h2>
-            <p>Manual checks for failure states that still need to feel intentional.</p>
+            <p>
+              Manual checks for failure states that still need to feel intentional and usable.
+            </p>
           </div>
           <div class="scenario-body">
             <div class="failure-shell stack">
               <ul class="checklist">
                 <li>Temporarily disable JavaScript and reload the live logo page.</li>
-                <li>Confirm the fallback image appears and the screen-reader text still makes sense.</li>
-                <li>Use a browser/device with WebGL restrictions if available and confirm the static state is acceptable.</li>
-                <li>Check that broken assets do not leave an empty box or confusing message.</li>
+                <li>Confirm the fallback image appears and the assistive text still makes sense.</li>
+                <li>Try a browser or device with WebGL restrictions if available.</li>
+                <li>Check that asset failures do not leave an empty box or confusing state.</li>
               </ul>
               <p style="margin-bottom: 0; color: var(--muted);">
-                This card is documentation-driven because browsers do not let a test page reliably disable another iframe's WebGL or JavaScript in a realistic way.
+                This scenario is documentation-driven because the harness cannot realistically
+                disable another iframe’s JavaScript or WebGL from the outside.
               </p>
             </div>
+            <div class="status-row">
+              <select class="status-select" aria-label="No WebGL or JS failure status">
+                <option value="pending">Pending review</option>
+                <option value="pass">Pass</option>
+                <option value="needs">Needs adjustment</option>
+                <option value="fail">Fail</option>
+              </select>
+              <span class="status-badge status-pending">Pending review</span>
+            </div>
+            <textarea
+              class="scenario-notes"
+              placeholder="Notes: fallback image quality, blank-state risk, messaging quality."
+            ></textarea>
           </div>
         </article>
       </section>
 
       <p class="footer">
-        Test harness for <code>https://card3d-studio.github.io/mmes-3d-logo/</code>
+        Test harness for
+        <code>https://card3d-studio.github.io/mmes-3d-logo/</code>
       </p>
     </div>
 
     <script>
-      const reloadButton = document.getElementById('reloadFrames');
-      const frames = Array.from(document.querySelectorAll('.logo-frame'));
+      const reloadButton = document.getElementById('reloadFrames')
+      const frames = Array.from(document.querySelectorAll('.logo-frame'))
+      const statusRows = Array.from(document.querySelectorAll('.status-row'))
 
       function reloadAllFrames() {
         frames.forEach((frame) => {
-          const current = frame.getAttribute('src');
-          frame.setAttribute('src', 'about:blank');
-          requestAnimationFrame(() => frame.setAttribute('src', current));
-        });
+          const current = frame.getAttribute('src')
+          frame.setAttribute('src', 'about:blank')
+          requestAnimationFrame(() => {
+            frame.setAttribute('src', current)
+          })
+        })
       }
 
-      reloadButton.addEventListener('click', reloadAllFrames);
+      function updateBadge(select, badge) {
+        badge.classList.remove('status-pass', 'status-needs', 'status-fail', 'status-pending')
+
+        switch (select.value) {
+          case 'pass':
+            badge.textContent = 'Pass'
+            badge.classList.add('status-pass')
+            break
+          case 'needs':
+            badge.textContent = 'Needs adjustment'
+            badge.classList.add('status-needs')
+            break
+          case 'fail':
+            badge.textContent = 'Fail'
+            badge.classList.add('status-fail')
+            break
+          default:
+            badge.textContent = 'Pending review'
+            badge.classList.add('status-pending')
+            break
+        }
+      }
+
+      statusRows.forEach((row) => {
+        const select = row.querySelector('.status-select')
+        const badge = row.querySelector('.status-badge')
+
+        if (select && badge) {
+          select.addEventListener('change', () => updateBadge(select, badge))
+          updateBadge(select, badge)
+        }
+      })
+
+      reloadButton.addEventListener('click', reloadAllFrames)
     </script>
   </body>
 </html>
