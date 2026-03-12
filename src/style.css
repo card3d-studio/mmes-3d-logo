@@ -1,0 +1,90 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 320px;
+  background: transparent;
+}
+
+body {
+  font-family: system-ui, Arial, sans-serif;
+}
+
+.page-shell {
+  width: 100%;
+  background: transparent;
+}
+
+.logo-figure {
+  margin: 0;
+  display: block;
+  background: transparent;
+}
+
+.logo-stage {
+  position: relative;
+  width: min(100vw, 900px);
+  height: min(75vh, 700px);
+  min-height: 320px;
+  margin: 0 auto;
+  background: transparent;
+  overflow: hidden;
+}
+
+.logo-stage canvas,
+.logo-fallback {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.logo-stage canvas {
+  position: relative;
+  z-index: 2;
+  background: transparent;
+  outline: none;
+}
+
+.logo-stage canvas:focus-visible {
+  outline: 2px solid #005fcc;
+  outline-offset: 4px;
+}
+
+.logo-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  object-fit: contain;
+  background: transparent;
+}
+
+.logo-stage[data-ready='true'] .logo-fallback {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-stage[data-ready='true'] .logo-fallback {
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 3;
+  }
+
+  .logo-stage canvas {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  white-space: nowrap;
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+}
