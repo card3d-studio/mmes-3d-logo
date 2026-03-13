@@ -963,41 +963,7 @@
           </div>
         </article>
 
-        <article class="scenario-card">
-          <div class="scenario-header">
-            <h2>No WebGL / JS Failure</h2>
-            <p>
-              Manual checks for failure states that still need to feel intentional and usable.
-            </p>
-          </div>
-          <div class="scenario-body">
-            <div class="failure-shell stack">
-              <ul class="checklist">
-                <li>Temporarily disable JavaScript and reload the live logo page.</li>
-                <li>Confirm the fallback image appears and the assistive text still makes sense.</li>
-                <li>Try a browser or device with WebGL restrictions if available.</li>
-                <li>Check that asset failures do not leave an empty box or confusing state.</li>
-              </ul>
-              <p style="margin-bottom: 0; color: var(--muted);">
-                This scenario is documentation-driven because the harness cannot realistically
-                disable another iframe’s JavaScript or WebGL from the outside.
-              </p>
-            </div>
-            <div class="status-row">
-              <select class="status-select" aria-label="No WebGL or JS failure status">
-                <option value="pending">Pending review</option>
-                <option value="pass">Pass</option>
-                <option value="needs">Needs adjustment</option>
-                <option value="fail">Fail</option>
-              </select>
-              <span class="status-badge status-pending">Pending review</span>
-            </div>
-            <textarea
-              class="scenario-notes"
-              placeholder="Notes: fallback image quality, blank-state risk, messaging quality."
-            ></textarea>
-          </div>
-        </article>
+        
       </section>
 
       <p class="footer">
