@@ -9,36 +9,38 @@ if (!container) {
 }
 
 const fallbackImage = container.querySelector('.logo-fallback')
-
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
 let reduceMotion = prefersReducedMotion.matches
 
 // ---------- Scene ----------
 const scene = new THREE.Scene()
 
-// ---------- Sizing ----------
+// ---------- Presentation / sizing ----------
+// Keep a fixed presentation aspect so the logo does not seem to morph
+// as the container changes shape.
+const DESIGN_ASPECT = 16 / 9
+
+// Old camera feel
+const FRUSTUM_HEIGHT = 6
+const FRUSTUM_WIDTH = FRUSTUM_HEIGHT * DESIGN_ASPECT
+
+// Cap the standalone canvas so it does not become ridiculously large.
+// These caps do NOT force overflow in small embeds; they only cap growth.
+const MAX_CANVAS_WIDTH = 900
+const MAX_CANVAS_HEIGHT = 700
+
 function getContainerSize() {
   const width = Math.max(container.clientWidth, 1)
   const height = Math.max(container.clientHeight, 1)
   return { width, height }
 }
 
-const frustumHeight = 6
-
-function getFrustumWidth(aspect) {
-  return frustumHeight * aspect
-}
-
-const { width: initialWidth, height: initialHeight } = getContainerSize()
-const initialAspect = initialWidth / initialHeight
-const initialFrustumWidth = getFrustumWidth(initialAspect)
-
 // ---------- Camera ----------
 const camera = new THREE.OrthographicCamera(
-  -initialFrustumWidth / 2,
-  initialFrustumWidth / 2,
-  frustumHeight / 2,
-  -frustumHeight / 2,
+  -FRUSTUM_WIDTH / 2,
+  FRUSTUM_WIDTH / 2,
+  FRUSTUM_HEIGHT / 2,
+  -FRUSTUM_HEIGHT / 2,
   0.1,
   100
 )
@@ -54,7 +56,6 @@ const renderer = new THREE.WebGLRenderer({
 })
 
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
-renderer.setSize(initialWidth, initialHeight)
 renderer.setClearColor(0x000000, 0)
 
 renderer.domElement.setAttribute('role', 'img')
@@ -64,31 +65,66 @@ renderer.domElement.setAttribute(
 )
 renderer.domElement.setAttribute('tabindex', '0')
 
-container.appendChild(renderer.domElement)
+renderer.domElement.style.position = 'absolute'
+renderer.domElement.style.display = 'block'
+renderer.domElement.style.background = 'transparent'
 
-if (fallbackImage) {
-  fallbackImage.style.display = 'none'
-}
+container.appendChild(renderer.domElement)
+container.dataset.ready = 'true'
 
 // ---------- Controls ----------
 const controls = new OrbitControls(camera, renderer.domElement)
-
 controls.enableDamping = true
 controls.enablePan = false
 controls.enableZoom = false
 controls.enableRotate = true
 controls.rotateSpeed = 0.8
-
+controls.target.set(0, 0, 0)
 controls.saveState()
 
 // ---------- Geometry container ----------
 const logoGroup = new THREE.Group()
 scene.add(logoGroup)
 
+// ---------- Reduced motion / fallback ----------
+function applyMotionPreference() {
+  reduceMotion = prefersReducedMotion.matches
+
+  if (reduceMotion) {
+    controls.enabled = false
+    renderer.domElement.style.opacity = '0'
+    renderer.domElement.style.pointerEvents = 'none'
+
+    if (fallbackImage) {
+      fallbackImage.style.display = 'block'
+      fallbackImage.style.opacity = '1'
+      fallbackImage.style.pointerEvents = 'auto'
+    }
+  } else {
+    controls.enabled = true
+    renderer.domElement.style.opacity = '1'
+    renderer.domElement.style.pointerEvents = 'auto'
+
+    if (fallbackImage) {
+      fallbackImage.style.display = 'block'
+      fallbackImage.style.opacity = '0'
+      fallbackImage.style.pointerEvents = 'none'
+    }
+  }
+}
+
+if (typeof prefersReducedMotion.addEventListener === 'function') {
+  prefersReducedMotion.addEventListener('change', applyMotionPreference)
+} else if (typeof prefersReducedMotion.addListener === 'function') {
+  prefersReducedMotion.addListener(applyMotionPreference)
+}
+
 // ---------- Keyboard rotation ----------
 const keyboardRotationStep = 0.12
 
 renderer.domElement.addEventListener('keydown', (event) => {
+  if (reduceMotion) return
+
   let handled = true
 
   switch (event.key) {
@@ -120,42 +156,73 @@ renderer.domElement.addEventListener('keydown', (event) => {
   if (handled) event.preventDefault()
 })
 
-// ---------- Colors ----------
+// ---------- Canvas layout inside container ----------
+// This keeps the logo presentation stable. The container can be any shape,
+// but the canvas itself stays in a fixed aspect ratio and is centered.
+function updateRendererLayout() {
+  const { width, height } = getContainerSize()
+  const containerAspect = width / Math.max(height, 1)
+
+  let drawWidth
+  let drawHeight
+
+  if (containerAspect > DESIGN_ASPECT) {
+    drawHeight = height
+    drawWidth = Math.round(drawHeight * DESIGN_ASPECT)
+  } else {
+    drawWidth = width
+    drawHeight = Math.round(drawWidth / DESIGN_ASPECT)
+  }
+
+  const capScale = Math.min(
+    1,
+    MAX_CANVAS_WIDTH / Math.max(drawWidth, 1),
+    MAX_CANVAS_HEIGHT / Math.max(drawHeight, 1)
+  )
+
+  drawWidth = Math.max(1, Math.round(drawWidth * capScale))
+  drawHeight = Math.max(1, Math.round(drawHeight * capScale))
+
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+  renderer.setSize(drawWidth, drawHeight, false)
+
+  const canvas = renderer.domElement
+  canvas.style.width = `${drawWidth}px`
+  canvas.style.height = `${drawHeight}px`
+  canvas.style.left = `${Math.round((width - drawWidth) / 2)}px`
+  canvas.style.top = `${Math.round((height - drawHeight) / 2)}px`
+}
+
+// ---------- Logo colors / geometry ----------
 const colors = {
   red: '#ed1e24',
   blue: '#01aeec',
   yellow: '#ffff00',
   orange: '#ffa500',
   green: '#39b54a',
-  purple: '#bc5e91'
+  purple: '#bc5e91',
 }
 
-function hexToRgb(hex) {
-  const normalized = hex.replace('#', '')
-  const bigint = parseInt(normalized, 16)
-
-  return {
-    r: (bigint >> 16) & 255,
-    g: (bigint >> 8) & 255,
-    b: bigint & 255
+function interpolateColors(color1, color2, alpha) {
+  const hexToRgb = (hex) => {
+    const bigint = parseInt(hex.slice(1), 16)
+    return {
+      r: (bigint >> 16) & 255,
+      g: (bigint >> 8) & 255,
+      b: bigint & 255,
+    }
   }
-}
 
-function rgbToHex(r, g, b) {
-  return (
-    '#' +
-    [r, g, b]
-      .map((value) => {
-        const hex = value.toString(16)
-        return hex.length === 1 ? '0' + hex : hex
+  const rgbToHex = (r, g, b) =>
+    `#${[r, g, b]
+      .map((x) => {
+        const hx = x.toString(16)
+        return hx.length === 1 ? `0${hx}` : hx
       })
-      .join('')
-  )
-}
+      .join('')}`
 
-function interpolateColors(c1, c2, alpha) {
-  const rgb1 = hexToRgb(c1)
-  const rgb2 = hexToRgb(c2)
+  const rgb1 = hexToRgb(color1)
+  const rgb2 = hexToRgb(color2)
 
   const r = Math.round(rgb1.r * (1 - alpha) + rgb2.r * alpha)
   const g = Math.round(rgb1.g * (1 - alpha) + rgb2.g * alpha)
@@ -164,138 +231,124 @@ function interpolateColors(c1, c2, alpha) {
   return rgbToHex(r, g, b)
 }
 
-function createMaterial(color, side) {
-  return new THREE.MeshBasicMaterial({
-    color,
-    side,
-    toneMapped: false
-  })
-}
-
-function createMesh(vertices, indices, frontColor, backColor) {
-  const geometry = new THREE.BufferGeometry()
-  geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3))
-  geometry.setIndex(indices)
-  geometry.computeVertexNormals()
-
-  const front = new THREE.Mesh(
-    geometry,
-    createMaterial(frontColor, THREE.FrontSide)
-  )
-
-  const back = new THREE.Mesh(
-    geometry,
-    createMaterial(backColor, THREE.BackSide)
-  )
-
-  logoGroup.add(front)
-  logoGroup.add(back)
-}
-
-function straightPart(frontColors, backColors, beta, x, startY, endY, z1, z2) {
-  const steps = 100
-  const step = (endY - startY) / steps
+function straightPart(frontColors, backColors, colorBeta, x, startY, endY, z1, z2) {
+  const numSteps = 100
+  const step = (endY - startY) / numSteps
   let lastY = startY
 
-  for (let i = 1; i <= steps; i++) {
-    const y = startY + i * step
-    const alpha = i / steps
+  for (let i = 1; i <= numSteps; i += 1) {
+    const thisY = startY + i * step
+    const alpha = i / numSteps
 
     const frontColor = interpolateColors(
       frontColors[0],
       frontColors[1],
-      alpha * beta
+      alpha * colorBeta
     )
 
     const backColor = interpolateColors(
       backColors[0],
       backColors[1],
-      alpha * beta
+      alpha * colorBeta
     )
 
     const vertices = new Float32Array([
-      x,
-      lastY,
-      z1,
-      x,
-      lastY,
-      z2,
-      x,
-      y,
-      z1,
-      x,
-      y,
-      z2
+      x, lastY, z1,
+      x, lastY, z2,
+      x, thisY, z1,
+      x, thisY, z2,
     ])
 
     const indices = [0, 1, 2, 2, 1, 3]
 
-    createMesh(vertices, indices, frontColor, backColor)
+    const frontMaterial = new THREE.MeshBasicMaterial({
+      color: frontColor,
+      side: THREE.FrontSide,
+    })
 
-    lastY = y
+    const backMaterial = new THREE.MeshBasicMaterial({
+      color: backColor,
+      side: THREE.BackSide,
+    })
+
+    lastY = thisY
+
+    const geometry = new THREE.BufferGeometry()
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3))
+    geometry.setIndex(indices)
+    geometry.computeVertexNormals()
+
+    const frontMesh = new THREE.Mesh(geometry, frontMaterial)
+    const backMesh = new THREE.Mesh(geometry, backMaterial)
+
+    logoGroup.add(frontMesh)
+    logoGroup.add(backMesh)
   }
 }
 
-function curvedPart(insideColors, outsideColors, beta, cx, cy, r, z1, z2) {
-  const steps = 100
-  const step = (Math.PI * 0.5) / steps
+function curvedPart(insideColors, outsideColors, colorBeta, centerX, centerY, radius, z1, z2) {
+  const numSteps = 100
+  const step = (Math.PI * 0.5) / numSteps
 
-  for (let i = 0; i < steps; i++) {
-    const alpha = i / steps
-
-    const a1 = i * step
-    const a2 = (i + 1) * step
+  for (let i = 0; i < numSteps; i += 1) {
+    const alpha = i / numSteps
+    const angle1 = i * step
+    const angle2 = (i + 1) * step
 
     const frontColor = interpolateColors(
       outsideColors[0],
       outsideColors[1],
-      alpha * beta + (1 - beta)
+      alpha * colorBeta + 1 - colorBeta
     )
 
     const backColor = interpolateColors(
       insideColors[0],
       insideColors[1],
-      alpha * beta + (1 - beta)
+      alpha * colorBeta + 1 - colorBeta
     )
 
     const vertices = new Float32Array([
-      cx + r * Math.cos(a1),
-      cy + r * Math.sin(a1),
-      z1,
-      cx + r * Math.cos(a1),
-      cy + r * Math.sin(a1),
-      z2,
-      cx + r * Math.cos(a2),
-      cy + r * Math.sin(a2),
-      z1,
-      cx + r * Math.cos(a2),
-      cy + r * Math.sin(a2),
-      z2,
+      centerX + radius * Math.cos(angle1), centerY + radius * Math.sin(angle1), z1,
+      centerX + radius * Math.cos(angle1), centerY + radius * Math.sin(angle1), z2,
+      centerX + radius * Math.cos(angle2), centerY + radius * Math.sin(angle2), z1,
+      centerX + radius * Math.cos(angle2), centerY + radius * Math.sin(angle2), z2,
 
-      cx - r * Math.cos(a1),
-      cy + r * Math.sin(a1),
-      z2,
-      cx - r * Math.cos(a1),
-      cy + r * Math.sin(a1),
-      z1,
-      cx - r * Math.cos(a2),
-      cy + r * Math.sin(a2),
-      z2,
-      cx - r * Math.cos(a2),
-      cy + r * Math.sin(a2),
-      z1
+      centerX - radius * Math.cos(angle1), centerY + radius * Math.sin(angle1), z2,
+      centerX - radius * Math.cos(angle1), centerY + radius * Math.sin(angle1), z1,
+      centerX - radius * Math.cos(angle2), centerY + radius * Math.sin(angle2), z2,
+      centerX - radius * Math.cos(angle2), centerY + radius * Math.sin(angle2), z1,
     ])
 
-    const indices = [0, 1, 2, 2, 1, 3, 4, 5, 6, 6, 5, 7]
+    const indices = [
+      0, 1, 2, 2, 1, 3,
+      4, 5, 6, 6, 5, 7,
+    ]
 
-    createMesh(vertices, indices, frontColor, backColor)
+    const frontMaterial = new THREE.MeshBasicMaterial({
+      color: frontColor,
+      side: THREE.FrontSide,
+    })
+
+    const backMaterial = new THREE.MeshBasicMaterial({
+      color: backColor,
+      side: THREE.BackSide,
+    })
+
+    const geometry = new THREE.BufferGeometry()
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3))
+    geometry.setIndex(indices)
+    geometry.computeVertexNormals()
+
+    const frontMesh = new THREE.Mesh(geometry, frontMaterial)
+    const backMesh = new THREE.Mesh(geometry, backMaterial)
+
+    logoGroup.add(frontMesh)
+    logoGroup.add(backMesh)
   }
 }
 
-// ---------- Build logo ----------
 const xGap = 2
 const betaStraight = 0.6
-const betaCurved = 0.4
 const botY = -0.7
 
 straightPart([colors.blue, colors.green], [colors.red, colors.orange], betaStraight, -xGap, botY, 1, 0.3, 0.9)
@@ -310,6 +363,7 @@ straightPart([colors.red, colors.orange], [colors.blue, colors.green], betaStrai
 straightPart([colors.yellow, colors.orange], [colors.blue, colors.purple], betaStraight, xGap, botY, 1, -0.3, 0.3)
 straightPart([colors.yellow, colors.green], [colors.red, colors.purple], betaStraight, xGap, botY, 1, -0.9, -0.3)
 
+const betaCurved = 0.4
 curvedPart([colors.blue, colors.green], [colors.red, colors.orange], betaCurved, -xGap / 2, 1, xGap / 2, 0.3, 0.9)
 curvedPart([colors.blue, colors.purple], [colors.yellow, colors.orange], betaCurved, -xGap / 2, 1, xGap / 2, -0.3, 0.3)
 curvedPart([colors.red, colors.purple], [colors.yellow, colors.green], betaCurved, -xGap / 2, 1, xGap / 2, -0.9, -0.3)
@@ -318,37 +372,31 @@ curvedPart([colors.blue, colors.green], [colors.red, colors.orange], betaCurved,
 curvedPart([colors.blue, colors.purple], [colors.yellow, colors.orange], betaCurved, xGap / 2, 1, xGap / 2, -0.3, 0.3)
 curvedPart([colors.red, colors.purple], [colors.yellow, colors.green], betaCurved, xGap / 2, 1, xGap / 2, -0.9, -0.3)
 
-// ---------- Resize ----------
-function updateCameraForContainer() {
-  const { width, height } = getContainerSize()
-  const aspect = width / height
-  const frustumWidth = getFrustumWidth(aspect)
+// ---------- Initial layout ----------
+applyMotionPreference()
+updateRendererLayout()
 
-  camera.left = -frustumWidth / 2
-  camera.right = frustumWidth / 2
-  camera.top = frustumHeight / 2
-  camera.bottom = -frustumHeight / 2
-  camera.updateProjectionMatrix()
+// ---------- Resize support ----------
+window.addEventListener('resize', updateRendererLayout)
 
-  renderer.setSize(width, height, false)
+const resizeObserver = new ResizeObserver(() => {
+  updateRendererLayout()
+})
+resizeObserver.observe(container)
+
+// ---------- Animate ----------
+function renderFrame() {
+  controls.update()
+  renderer.render(scene, camera)
 }
 
-window.addEventListener('resize', updateCameraForContainer)
-
-// ---------- Initial state ----------
-logoGroup.rotation.set(0, 0, 0)
-
-updateCameraForContainer()
-
-// ---------- Animation ----------
 function animate() {
   requestAnimationFrame(animate)
 
   if (!reduceMotion) {
-    controls.update()
+    renderFrame()
   }
-
-  renderer.render(scene, camera)
 }
 
+renderFrame()
 animate()
