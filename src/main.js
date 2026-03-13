@@ -45,8 +45,8 @@ const camera = new THREE.OrthographicCamera(
   100
 )
 
-camera.position.set(10, 0, 10)
-camera.lookAt(0, 0, 0)
+camera.position.set(10, 0.5, 10)
+camera.lookAt(0, 0.5, 0)
 
 // ---------- Renderer ----------
 const renderer = new THREE.WebGLRenderer({
@@ -79,7 +79,7 @@ controls.enablePan = false
 controls.enableZoom = false
 controls.enableRotate = true
 controls.rotateSpeed = 0.8
-controls.target.set(0, 0, 0)
+controls.target.set(0, 0.5, 0)
 controls.saveState()
 
 // ---------- Geometry container ----------
