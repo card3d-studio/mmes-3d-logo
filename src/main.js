@@ -18,7 +18,7 @@ const scene = new THREE.Scene()
 // ---------- Presentation / sizing ----------
 // Keep a fixed presentation aspect so the logo does not seem to morph
 // as the container changes shape.
-const DESIGN_ASPECT = 16 / 9
+const DESIGN_ASPECT = 4 / 3
 
 // Old camera feel
 const FRUSTUM_HEIGHT = 6
