@@ -21,7 +21,7 @@ const scene = new THREE.Scene()
 const DESIGN_ASPECT = 4 / 3
 
 // Old camera feel
-const FRUSTUM_HEIGHT = 6
+const FRUSTUM_HEIGHT = 4
 const FRUSTUM_WIDTH = FRUSTUM_HEIGHT * DESIGN_ASPECT
 
 // Cap the standalone canvas so it does not become ridiculously large.
